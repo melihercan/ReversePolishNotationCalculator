@@ -8,9 +8,12 @@ namespace rpn
 
     class Program
     {
+        static Stack<object> Stack { get; set; } = new Stack<object> { };
+
         static Dictionary<string, Action> Operators = new Dictionary<string, Action> 
         {
-            ["+"] = Add,
+            ["+"] = () => { Console.WriteLine("add is called"); },
+            ["-"] = () => { Console.WriteLine("substract is called"); },
         };
 
         private static void Add()
@@ -49,22 +52,34 @@ namespace rpn
                     isExit = true;
                 }
 
-                ParseInput(readLine);
+                ParseInputAndExecute(readLine);
 
-                Operators["+"].Invoke();
 
             }
         }
 
-        private static void ParseInput(string readLine)
+        private static void ParseInputAndExecute(string readLine)
         {
             var tokens = readLine.Split(" ").Where(_ => _ != string.Empty);
             foreach (var token in tokens)
+            {
                 Console.WriteLine(token);
+
+                try
+                {
+                    // If operator?
+                    Operators[token].Invoke();
+                }
+                catch (KeyNotFoundException)
+                {
+                    // TODDO: try parse convert to ValueTypes (!!!!CONSIDER DISPLAY MODES)
+                }
+            }
         }
 
         private static void DisplayPrompt()
         {
+            //!!!!CONSIDER DISPLAY MODES)
             Console.Write(prompt);
         }
 
