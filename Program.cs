@@ -9,7 +9,7 @@ namespace rpn
 
     class Program
     {
-        static Stack<object> Stack { get; set; } = new Stack<object>(100);
+        static Stack<object> Stack { get; set; } = new Stack<object>(/*100*/);
 
         static Dictionary<string, Action> Operators = new Dictionary<string, Action> 
         {
@@ -64,7 +64,7 @@ namespace rpn
             var tokens = readLine.Split(" ").Where(_ => _ != string.Empty);
             foreach (var token in tokens)
             {
-      Console.WriteLine(token);
+      //Console.WriteLine(token);
 
                 try
                 {
@@ -100,15 +100,92 @@ namespace rpn
             Console.WriteLine($"Error: {error}");
         }
 
+
+        static Type[] ValueTypes = new Type[] 
+        {
+            typeof(int),
+            typeof(long),
+            typeof(double),
+        };
+
+        static int[] Bases = new int[]
+        {
+            2,
+            8,
+            16
+        };
         private static object GetObject(string token)
         {
             object obj = null;
 
-            Type type = Type.GetType(token);
-            var converter = TypeDescriptor.GetConverter(type);
-            obj = converter.ConvertFromString(token);
+            // Try hex, octal, bin.
+            if (token.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                var t = token.Substring(2);
+                try
+                {
+                    obj = Convert.ToInt32(t, 16);
+                    if (obj != null) return obj;
+                }
+                catch { }
+                try
+                {
+                    obj = Convert.ToInt64(t, 16);
+                    if (obj != null) return obj;
+                }
+                catch { }
+            }
+            else if (token.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
+            {
+                var t = token.Substring(2);
+                try
+                {
+                    obj = Convert.ToInt32(t, 2);
+                    if (obj != null) return obj;
+                }
+                catch { }
+                try
+                {
+                    obj = Convert.ToInt64(t, 2);
+                    if (obj != null) return obj;
+                }
+                catch { }
+            }
+            else if (token.StartsWith("0"))
+            {
+                var t = token.Substring(1);
+                try
+                {
+                    obj = Convert.ToInt32(t, 8);
+                    if (obj != null) return obj;
+                }
+                catch { }
+                try
+                {
+                    obj = Convert.ToInt64(t, 8);
+                    if (obj != null) return obj;
+                }
+                catch { }
+            }
+            else
+            {
+                // Try value types.
+                foreach (var type in ValueTypes)
+                {
+                    try
+                    {
+                        obj = Convert.ChangeType(token, type);
+                        if (obj != null) return obj;
+                    }
+                    catch { }
+                }
+            }
 
-            return obj;
+            //Type type = Type.GetType(token);
+            //var converter = TypeDescriptor.GetConverter(type);
+            //obj = converter.ConvertFromString(token);
+
+            throw new Exception("Invalid input");
         }
 
     }
