@@ -13,6 +13,7 @@ namespace rpn
     {
         static bool isExit = false;
         static int repeat = 0;
+        static string varName = "";
 
         static Stack<dynamic> Stack { get; set; } = new Stack<dynamic>();
 
@@ -44,7 +45,7 @@ namespace rpn
 
             // Macros and variables.
             ["macro"] = () => { },
-            ["var"] = () => { },
+            ["var"] = () => { Variables.Add(varName.TrimEnd('='), Stack.Pop()); },
 
             // Other.
             ["exit"] = () => { isExit = true; },
@@ -53,6 +54,8 @@ namespace rpn
         };
 
         static Dictionary<string, List<string>> Macros = new Dictionary<string, List<string>>();
+        static Dictionary<string, object> Variables = new Dictionary<string, object>();
+
 
         const string prompt = "> ";
 
@@ -88,7 +91,7 @@ namespace rpn
                 var tokens = ParseInput(readLine);
 
                 CheckAndCreateMacro(ref tokens);
-                CheckAndCreateVariables(ref tokens);
+                //CheckAndCreateVariables(ref tokens);
                 Execute(tokens);
             }
         }
@@ -179,24 +182,66 @@ namespace rpn
             {
                 try
                 {
-                    // First check if it is macro.
-                    if (Macros.ContainsKey(token))
-                    {
-                        // Execute macro recursive.
-                        Execute(Macros[token].ToArray());
-                        continue;
-                    }
 
                     // If operator?
                     if (repeat == 0)
                     {
-                        Operators[token].Invoke();
+                        // First check if it is macro.
+                        if (Macros.ContainsKey(token))
+                        {
+                            // Execute macro recursive.
+                            Execute(Macros[token].ToArray());
+                            continue;
+                        }
+
+                        // Then check if variable.
+                        if (Variables.ContainsKey(token))
+                        {
+                            // Use variable value.
+                            Stack.Push(Variables[token]);
+                            continue;
+                        }
+
+                        // Variable preconditioning.
+                        if (token.EndsWith("="))
+                        {
+                            varName = token;
+                            Operators["var"].Invoke();
+                        }
+                        else
+                        {
+                            Operators[token].Invoke();
+                        }
                     }
                     else
                     {
                         for (int i = 0; i < repeat; i++)
                         {
-                            Operators[token].Invoke();
+                            // First check if it is macro.
+                            if (Macros.ContainsKey(token))
+                            {
+                                // Execute macro recursive.
+                                Execute(Macros[token].ToArray());
+                                continue;
+                            }
+
+                            // Then check if variable.
+                            if (Variables.ContainsKey(token))
+                            {
+                                // Use variable value.
+                                Stack.Push(Variables[token]);
+                                continue;
+                            }
+
+                            if (token.EndsWith("="))
+                            {
+                                varName = token;
+                                Operators["var"].Invoke();
+                            }
+                            else
+                            {
+                                Operators[token].Invoke();
+                            }
                         }
                         repeat = 0;
                     }
@@ -220,7 +265,6 @@ namespace rpn
                 }
             }
         }
-
 
         static void DisplayStack()
         {
