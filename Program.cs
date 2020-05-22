@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace rpn
@@ -8,7 +9,7 @@ namespace rpn
 
     class Program
     {
-        static Stack<object> Stack { get; set; } = new Stack<object> { };
+        static Stack<object> Stack { get; set; } = new Stack<object>(100);
 
         static Dictionary<string, Action> Operators = new Dictionary<string, Action> 
         {
@@ -44,7 +45,7 @@ namespace rpn
             bool isExit = false;
             while (!isExit)
             {
-                DisplayPrompt();
+                DisplayStack();
                 var readLine = Console.ReadLine();
                 if(readLine == null)
                 {
@@ -63,7 +64,7 @@ namespace rpn
             var tokens = readLine.Split(" ").Where(_ => _ != string.Empty);
             foreach (var token in tokens)
             {
-                Console.WriteLine(token);
+      Console.WriteLine(token);
 
                 try
                 {
@@ -72,15 +73,42 @@ namespace rpn
                 }
                 catch (KeyNotFoundException)
                 {
-                    // TODDO: try parse convert to ValueTypes (!!!!CONSIDER DISPLAY MODES)
+                    // Not an operator. Could be anything, find it out.
+                    try
+                    {
+                        var item = GetObject(token);
+       Console.WriteLine($"{item.GetType()}: {item}");
+                        Stack.Push(item);
+                    }
+                    catch (Exception ex)
+                    {
+                        DisplayError(ex.Message);
+                    }
                 }
             }
         }
 
-        private static void DisplayPrompt()
+        private static void DisplayStack()
         {
             //!!!!CONSIDER DISPLAY MODES)
+
             Console.Write(prompt);
+        }
+
+        private static void DisplayError(string error)
+        {
+            Console.WriteLine($"Error: {error}");
+        }
+
+        private static object GetObject(string token)
+        {
+            object obj = null;
+
+            Type type = Type.GetType(token);
+            var converter = TypeDescriptor.GetConverter(type);
+            obj = converter.ConvertFromString(token);
+
+            return obj;
         }
 
     }
