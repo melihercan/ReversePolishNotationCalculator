@@ -11,8 +11,9 @@ namespace rpn
     class Program
     {
         static bool isExit = false;
+        static int repeat = 0;
 
-        static Stack<dynamic> Stack { get; set; } = new Stack<object>();
+        static Stack<dynamic> Stack { get; set; } = new Stack<dynamic>();
 
         static Dictionary<string, Action> Operators = new Dictionary<string, Action> 
         {
@@ -21,9 +22,11 @@ namespace rpn
             ["*"] = () => { Stack.Push(Stack.Pop() * Stack.Pop()); },
             ["/"] = () => { Stack.Push(Stack.Pop() / Stack.Pop()); },
 
-
-
+            ["repeat"] = () =>  {repeat = (int)Stack.Pop(); },
+            ["dup"] = () => { Stack.Push(Stack.Peek()); },
+            
             ["exit"] = () => { isExit = true; },
+
 
         };
 
@@ -71,14 +74,25 @@ namespace rpn
                 try
                 {
                     // If operator?
-                    Operators[token].Invoke();
+                    if (repeat == 0)
+                    {
+                        Operators[token].Invoke();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < repeat; i++)
+                        {
+                            Operators[token].Invoke();
+                        }
+                        repeat = 0;
+                    }
                 }
                 catch (KeyNotFoundException)
                 {
                     // Not an operator. Should be a value.
                     try
                     {
-                        var item = GetObject(token);
+                        var item = GetValue(token);
                         Stack.Push(item);
                     }
                     catch (Exception ex)
@@ -86,10 +100,15 @@ namespace rpn
                         DisplayError(ex.Message);
                     }
                 }
+                catch (Exception ex)
+                {
+                    DisplayError(ex.Message);
+                }
             }
         }
 
-        private static void DisplayStack()
+
+        static void DisplayStack()
         {
             //!!!!CONSIDER DISPLAY MODES)
 
@@ -101,11 +120,10 @@ namespace rpn
             Console.Write(prompt);
         }
 
-        private static void DisplayError(string error)
+        static void DisplayError(string error)
         {
             Console.WriteLine($"Error: {error}");
         }
-
 
         static Type[] ValueTypes = new Type[] 
         {
@@ -114,74 +132,70 @@ namespace rpn
             typeof(double),
         };
 
-        private static object GetObject(string token)
+        static object GetValue(string token)
         {
-            object obj = null;
+            object obj;
+
+            // Try hex, octal, binary.
+            obj = ParseHexOctalBinary(token);
+            if (obj != null) return obj;
+
+            // Try value types.
+            foreach (var type in ValueTypes)
+            {
+                try
+                {
+                    obj = Convert.ChangeType(token, type);
+                    if (obj != null) return obj;
+                }
+                catch { }
+            }
+
+            throw new Exception("Invalid input");
+        }
+
+        static object ParseHexOctalBinary(string token)
+        {
+            object obj;
+
+            int _base;
+            string t;
 
             // Try hex, octal, bin.
             if (token.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                var t = token.Substring(2);
-                try
-                {
-                    obj = Convert.ToInt32(t, 16);
-                    if (obj != null) return obj;
-                }
-                catch { }
-                try
-                {
-                    obj = Convert.ToInt64(t, 16);
-                    if (obj != null) return obj;
-                }
-                catch { }
+                t = token.Substring(2);
+                _base = 16;
             }
             else if (token.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
             {
-                var t = token.Substring(2);
-                try
-                {
-                    obj = Convert.ToInt32(t, 2);
-                    if (obj != null) return obj;
-                }
-                catch { }
-                try
-                {
-                    obj = Convert.ToInt64(t, 2);
-                    if (obj != null) return obj;
-                }
-                catch { }
+                t = token.Substring(2);
+                _base = 2;
             }
             else if (token.StartsWith("0"))
             {
-                var t = token.Substring(1);
-                try
-                {
-                    obj = Convert.ToInt32(t, 8);
-                    if (obj != null) return obj;
-                }
-                catch { }
-                try
-                {
-                    obj = Convert.ToInt64(t, 8);
-                    if (obj != null) return obj;
-                }
-                catch { }
+                t = token.Substring(1);
+                _base = 8;
             }
             else
             {
-                // Try value types.
-                foreach (var type in ValueTypes)
-                {
-                    try
-                    {
-                        obj = Convert.ChangeType(token, type);
-                        if (obj != null) return obj;
-                    }
-                    catch { }
-                }
+                return null;
             }
 
-            throw new Exception("Invalid input");
+            try
+            {
+                obj = Convert.ToInt32(t, _base);
+                if (obj != null) return (double)obj;
+            }
+            catch { }
+            try
+            {
+                obj = Convert.ToInt64(t, _base);
+                if (obj != null) return (double)obj;
+            }
+            catch { }
+
+            return null;
         }
     }
 }
