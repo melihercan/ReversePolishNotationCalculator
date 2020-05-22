@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Principal;
 
 namespace rpn
 {
@@ -17,18 +18,40 @@ namespace rpn
 
         static Dictionary<string, Action> Operators = new Dictionary<string, Action> 
         {
+            // Arithmetic.
             ["+"] = () => { Stack.Push(Stack.Pop() + Stack.Pop()); },
-            ["-"] = () => { Stack.Push(Stack.Pop() - Stack.Pop()); },
+            ["-"] = () => { var x = Stack.Pop();  Stack.Push(Stack.Pop() - x); },
             ["*"] = () => { Stack.Push(Stack.Pop() * Stack.Pop()); },
-            ["/"] = () => { Stack.Push(Stack.Pop() / Stack.Pop()); },
+            ["/"] = () => { var x = Stack.Pop();  Stack.Push(Stack.Pop() / x); },
 
-            ["repeat"] = () =>  {repeat = (int)Stack.Pop(); },
+            // Numeraic utilities.
+            ["round"] = () => { Stack.Push(Math.Round(Stack.Pop())); },
+
+
+            // Constants.
+            ["pi"] = () => { Stack.Push(Math.PI); },
+
+
+            // Mathematic functions.
+            ["sqrt"] = () => { Stack.Push(Math.Sqrt(Stack.Pop())); },
+
+            // Stack manipulation.
+            ["repeat"] = () => { repeat = (int)Stack.Pop(); },
+            ["drop"] = () => { _ = Stack.Pop(); },
             ["dup"] = () => { Stack.Push(Stack.Peek()); },
-            
+            ["swap"] = () => { var x = Stack.Pop(); var y = Stack.Pop(); Stack.Push(x); Stack.Push(y); },
+
+
+            // Macros and variables.
+            ["macro"] = () => { },
+
+            // Other.
             ["exit"] = () => { isExit = true; },
 
 
         };
+
+        static Dictionary<string, List<string>> Macros = new Dictionary<string, List<string>>();
 
         const string prompt = "> ";
 
@@ -53,6 +76,7 @@ namespace rpn
             while (!isExit)
             {
                 DisplayStack();
+
                 var readLine = Console.ReadLine();
                 if(readLine == null)
                 {
@@ -60,19 +84,54 @@ namespace rpn
                     isExit = true;
                 }
 
-                ParseInputAndExecute(readLine);
+                var tokens = ParseInput(readLine);
 
-
+                if (!CheckAndCreateMacro(tokens))
+                {
+                    Execute(tokens);
+                }
             }
         }
 
-        private static void ParseInputAndExecute(string readLine)
+        static string[] ParseInput(string readLine)
         {
-            var tokens = readLine.Split(" ").Where(_ => _ != string.Empty);
+            var tokens = readLine.Split(" ").Where(_ => _ != string.Empty).ToArray();
+            return tokens;
+        }
+
+        static bool CheckAndCreateMacro(string[] tokens)
+        {
+            if (tokens.Length != 0 && tokens[0] == "macro")
+            {
+                if(tokens.Length > 1)
+                {
+                    var macroName = tokens[1];
+                    // Create new macro, token name is in index 1.
+                    Macros.Add(macroName, new List<string>());
+                    foreach(var token in tokens.Skip(2))
+                    {
+                        Macros[macroName].Add(token);
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        static void Execute(string[] tokens)
+        {
             foreach (var token in tokens)
             {
                 try
                 {
+                    // First check if it is macro.
+                    if (Macros.ContainsKey(token))
+                    {
+                        // Execute macro recursive.
+                        Execute(Macros[token].ToArray());
+                        continue;
+                    }
+
                     // If operator?
                     if (repeat == 0)
                     {
