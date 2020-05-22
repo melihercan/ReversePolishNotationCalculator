@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,18 +10,22 @@ namespace rpn
 
     class Program
     {
-        static Stack<object> Stack { get; set; } = new Stack<object>(/*100*/);
+        static bool isExit = false;
+
+        static Stack<dynamic> Stack { get; set; } = new Stack<object>();
 
         static Dictionary<string, Action> Operators = new Dictionary<string, Action> 
         {
-            ["+"] = () => { Console.WriteLine("add is called"); },
-            ["-"] = () => { Console.WriteLine("substract is called"); },
-        };
+            ["+"] = () => { Stack.Push(Stack.Pop() + Stack.Pop()); },
+            ["-"] = () => { Stack.Push(Stack.Pop() - Stack.Pop()); },
+            ["*"] = () => { Stack.Push(Stack.Pop() * Stack.Pop()); },
+            ["/"] = () => { Stack.Push(Stack.Pop() / Stack.Pop()); },
 
-        private static void Add()
-        {
-            Console.WriteLine("add is called");
-        }
+
+
+            ["exit"] = () => { isExit = true; },
+
+        };
 
         const string prompt = "> ";
 
@@ -42,7 +47,6 @@ namespace rpn
 
         static void CommandLoop()
         {
-            bool isExit = false;
             while (!isExit)
             {
                 DisplayStack();
@@ -64,8 +68,6 @@ namespace rpn
             var tokens = readLine.Split(" ").Where(_ => _ != string.Empty);
             foreach (var token in tokens)
             {
-      //Console.WriteLine(token);
-
                 try
                 {
                     // If operator?
@@ -73,11 +75,10 @@ namespace rpn
                 }
                 catch (KeyNotFoundException)
                 {
-                    // Not an operator. Could be anything, find it out.
+                    // Not an operator. Should be a value.
                     try
                     {
                         var item = GetObject(token);
-       Console.WriteLine($"{item.GetType()}: {item}");
                         Stack.Push(item);
                     }
                     catch (Exception ex)
@@ -92,6 +93,11 @@ namespace rpn
         {
             //!!!!CONSIDER DISPLAY MODES)
 
+            var entries = Stack.ToArray().Reverse();
+            foreach (var entry in entries)
+            {
+                Console.Write(entry + " ");
+            }
             Console.Write(prompt);
         }
 
@@ -103,17 +109,11 @@ namespace rpn
 
         static Type[] ValueTypes = new Type[] 
         {
-            typeof(int),
-            typeof(long),
+//            typeof(int),
+  //          typeof(long),
             typeof(double),
         };
 
-        static int[] Bases = new int[]
-        {
-            2,
-            8,
-            16
-        };
         private static object GetObject(string token)
         {
             object obj = null;
@@ -181,12 +181,7 @@ namespace rpn
                 }
             }
 
-            //Type type = Type.GetType(token);
-            //var converter = TypeDescriptor.GetConverter(type);
-            //obj = converter.ConvertFromString(token);
-
             throw new Exception("Invalid input");
         }
-
     }
 }
