@@ -44,6 +44,7 @@ namespace rpn
 
             // Macros and variables.
             ["macro"] = () => { },
+            ["var"] = () => { },
 
             // Other.
             ["exit"] = () => { isExit = true; },
@@ -86,10 +87,9 @@ namespace rpn
 
                 var tokens = ParseInput(readLine);
 
-                if (!CheckAndCreateMacro(tokens))
-                {
-                    Execute(tokens);
-                }
+                CheckAndCreateMacro(ref tokens);
+                CheckAndCreateVariables(ref tokens);
+                Execute(tokens);
             }
         }
 
@@ -99,23 +99,78 @@ namespace rpn
             return tokens;
         }
 
-        static bool CheckAndCreateMacro(string[] tokens)
+        static void CheckAndCreateMacro(ref string[] tokens)
         {
-            if (tokens.Length != 0 && tokens[0] == "macro")
+
+            var index = Array.FindIndex(tokens, _ => _.Equals("macro"));
+            if(index != -1)
             {
-                if(tokens.Length > 1)
+                var clone = new List<string>();
+                clone.AddRange(tokens.Take(index));
+
+                // Take the rest as macro.
+                var macro = tokens.Skip(index).ToArray();
+                if (macro.Length > 1)
                 {
-                    var macroName = tokens[1];
-                    // Create new macro, token name is in index 1.
+                    var macroName = macro[1];
                     Macros.Add(macroName, new List<string>());
-                    foreach(var token in tokens.Skip(2))
+                    foreach (var m in macro.Skip(2))
                     {
-                        Macros[macroName].Add(token);
+                        Macros[macroName].Add(m);
                     }
                 }
-                return true;
+                tokens = clone.ToArray();
             }
-            return false;
+
+
+
+            //if (tokens.Length != 0 && tokens[0] == "macro")
+            //{
+            //    if(tokens.Length > 1)
+            //    {
+            //        var macroName = tokens[1];
+            //        // Create new macro, token name is in index 1.
+            //        Macros.Add(macroName, new List<string>());
+            //        foreach(var token in tokens.Skip(2))
+            //        {
+            //            Macros[macroName].Add(token);
+            //        }
+            //    }
+            //}
+        }
+
+        static void CheckAndCreateVariables(ref string[] tokens)
+        {
+            var clone = new List<string>();
+            foreach (var token in tokens)
+            {
+                if (token.Contains("="))
+                {
+
+                    clone.Add("var");
+                }
+            }
+
+
+
+            //var clone = new List<string>();
+            //clone.Add("var");
+            //clone.AddRange(tokens.Skip(1))
+
+
+            //if (tokens.Length != 0 && tokens[0].Contains("="))
+            //{
+            //    if (tokens.Length > 1)
+            //    {
+            //        var macroName = tokens[1];
+            //        // Create new macro, token name is in index 1.
+            //        Macros.Add(macroName, new List<string>());
+            //        foreach (var token in tokens.Skip(2))
+            //        {
+            //            Macros[macroName].Add(token);
+            //        }
+            //    }
+            //}
         }
 
         static void Execute(string[] tokens)
