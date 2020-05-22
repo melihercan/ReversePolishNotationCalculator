@@ -124,56 +124,6 @@ namespace rpn
                 }
                 tokens = clone.ToArray();
             }
-
-
-
-            //if (tokens.Length != 0 && tokens[0] == "macro")
-            //{
-            //    if(tokens.Length > 1)
-            //    {
-            //        var macroName = tokens[1];
-            //        // Create new macro, token name is in index 1.
-            //        Macros.Add(macroName, new List<string>());
-            //        foreach(var token in tokens.Skip(2))
-            //        {
-            //            Macros[macroName].Add(token);
-            //        }
-            //    }
-            //}
-        }
-
-        static void CheckAndCreateVariables(ref string[] tokens)
-        {
-            var clone = new List<string>();
-            foreach (var token in tokens)
-            {
-                if (token.Contains("="))
-                {
-
-                    clone.Add("var");
-                }
-            }
-
-
-
-            //var clone = new List<string>();
-            //clone.Add("var");
-            //clone.AddRange(tokens.Skip(1))
-
-
-            //if (tokens.Length != 0 && tokens[0].Contains("="))
-            //{
-            //    if (tokens.Length > 1)
-            //    {
-            //        var macroName = tokens[1];
-            //        // Create new macro, token name is in index 1.
-            //        Macros.Add(macroName, new List<string>());
-            //        foreach (var token in tokens.Skip(2))
-            //        {
-            //            Macros[macroName].Add(token);
-            //        }
-            //    }
-            //}
         }
 
         static void Execute(string[] tokens)
@@ -283,13 +233,6 @@ namespace rpn
             Console.WriteLine($"Error: {error}");
         }
 
-        static Type[] ValueTypes = new Type[] 
-        {
-//            typeof(int),
-  //          typeof(long),
-            typeof(double),
-        };
-
         static object GetValue(string token)
         {
             object obj;
@@ -298,16 +241,8 @@ namespace rpn
             obj = ParseHexOctalBinary(token);
             if (obj != null) return obj;
 
-            // Try value types.
-            foreach (var type in ValueTypes)
-            {
-                try
-                {
-                    obj = Convert.ChangeType(token, type);
-                    if (obj != null) return obj;
-                }
-                catch { }
-            }
+            obj = Convert.ChangeType(token, typeof(double));
+            if (obj != null) return obj;
 
             throw new Exception("Invalid input");
         }
