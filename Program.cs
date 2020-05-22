@@ -79,7 +79,7 @@ namespace rpn
         {
             while (!isExit)
             {
-                DisplayStack();
+                DisplayVariablesAndStack();
 
                 var readLine = Console.ReadLine();
                 if(readLine == null)
@@ -216,9 +216,15 @@ namespace rpn
             }
         }
 
-        static void DisplayStack()
+        static void DisplayVariablesAndStack()
         {
             //!!!!CONSIDER DISPLAY MODES)
+
+            // First variables.
+            foreach(var variable in Variables)
+            {
+                Console.Write($"[ {variable.Key}={variable.Value} ] ");
+            }
 
             var entries = Stack.ToArray().Reverse();
             foreach (var entry in entries)
