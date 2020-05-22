@@ -24,6 +24,22 @@ namespace rpn
             ["-"] = () => { var x = Stack.Pop();  Stack.Push(Stack.Pop() - x); },
             ["*"] = () => { Stack.Push(Stack.Pop() * Stack.Pop()); },
             ["/"] = () => { var x = Stack.Pop();  Stack.Push(Stack.Pop() / x); },
+            ["cla"] = () => { Stack.Clear(); Variables.Clear(); Macros.Clear(); },
+            ["clr"] = () => { Stack.Clear(); },
+            ["clv"] = () => { Variables.Clear(); Macros.Clear(); },
+            ["!"] = () => { Stack.Push(!Stack.Pop()); },
+            ["!="] = () => { Stack.Push(Stack.Pop() != Stack.Pop()); },
+            ["%"] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() % x); },
+            ["++"] = () => { var x = Stack.Pop(); x++; Stack.Push(x); },
+            ["--"] = () => { var x = Stack.Pop(); x--; Stack.Push(x); },
+
+
+
+
+
+
+
+            [""] = () => { },
 
             // Numeraic utilities.
             ["round"] = () => { Stack.Push(Math.Round(Stack.Pop())); },
