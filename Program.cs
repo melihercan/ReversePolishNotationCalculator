@@ -12,6 +12,7 @@ namespace rpn
 
     class Program
     {
+        const string prompt = "> ";
         static bool isExit = false;
         static int repeat = 1;
         static string varName = "";
@@ -25,7 +26,9 @@ namespace rpn
         };
         static DisplayMode displayMode = DisplayMode.Dec;
 
-        static Stack<dynamic> Stack { get; set; } = new Stack<dynamic>();
+        static Stack<decimal> Stack { get; set; } = new Stack<decimal>();
+        static Dictionary<string, List<string>> Macros = new Dictionary<string, List<string>>();
+        static Dictionary<string, decimal> Variables = new Dictionary<string, decimal>();
 
         static Dictionary<string, Action> Operators = new Dictionary<string, Action>
         {
@@ -37,9 +40,9 @@ namespace rpn
             ["cla"] = () => { Stack.Clear(); Variables.Clear(); Macros.Clear(); },
             ["clr"] = () => { Stack.Clear(); },
             ["clv"] = () => { Variables.Clear(); Macros.Clear(); },
-            ["!"] = () => { var x = Stack.Pop(); Stack.Push(x == 0 ? 1 : 0); },
-            ["!="] = () => { Stack.Push(Stack.Pop() == Stack.Pop() ? 0 : 1); },
-            ["%"] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() % x); },
+            ["!"] = () => { var x = (ulong)Stack.Pop(); Stack.Push(x == 0 ? 1 : 0); },
+            ["!="] = () => { Stack.Push((ulong)Stack.Pop() == (ulong)Stack.Pop() ? 0 : 1); },
+            ["%"] = () => { var x = (ulong)Stack.Pop(); Stack.Push((ulong)Stack.Pop() % x); },
             ["++"] = () => { var x = Stack.Pop(); x++; Stack.Push(x); },
             ["--"] = () => { var x = Stack.Pop(); x--; Stack.Push(x); },
 
@@ -64,14 +67,14 @@ namespace rpn
             [">="] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() >= x ? 1 : 0); },
 
             //Trigonometric functions.
-            ["acos"] = () => { Stack.Push(Math.Acos((Math.PI / 180) * Stack.Pop())); },
-            ["asin"] = () => { Stack.Push(Math.Asin((Math.PI / 180) * Stack.Pop())); },
-            ["atan"] = () => { Stack.Push(Math.Atan((Math.PI / 180) * Stack.Pop())); },
-            ["cos"] = () => { Stack.Push(Math.Cos((Math.PI / 180) * Stack.Pop())); },
-            ["cosh"] = () => { Stack.Push(Math.Cosh((Math.PI / 180) * Stack.Pop())); },
-            ["sin"] = () => { Stack.Push(Math.Sin((Math.PI / 180) * Stack.Pop())); },
-            ["sinh"] = () => { Stack.Push(Math.Sinh((Math.PI / 180) * Stack.Pop())); },
-            ["tanh"] = () => { Stack.Push(Math.Tanh((Math.PI / 180) * Stack.Pop())); },
+            ["acos"] = () => { Stack.Push((decimal)Math.Acos((Math.PI / 180) * (double)Stack.Pop())); },
+            ["asin"] = () => { Stack.Push((decimal)Math.Asin((Math.PI / 180) * (double)Stack.Pop())); },
+            ["atan"] = () => { Stack.Push((decimal)Math.Atan((Math.PI / 180) * (double)Stack.Pop())); },
+            ["cos"] = () => { Stack.Push((decimal)Math.Cos((Math.PI / 180) * (double)Stack.Pop())); },
+            ["cosh"] = () => { Stack.Push((decimal)Math.Cosh((Math.PI / 180) * (double)Stack.Pop())); },
+            ["sin"] = () => { Stack.Push((decimal)Math.Sin((Math.PI / 180) * (double)Stack.Pop())); },
+            ["sinh"] = () => { Stack.Push((decimal)Math.Sinh((Math.PI / 180) * (double)Stack.Pop())); },
+            ["tanh"] = () => { Stack.Push((decimal)Math.Tanh((Math.PI / 180) * (double)Stack.Pop())); },
 
 
             // Numeric utilities.
@@ -85,25 +88,30 @@ namespace rpn
             ["max"] = () => { Stack.Push(Math.Max(Stack.Pop(), Stack.Pop())); },
             ["max"] = () => { Stack.Push(Math.Min(Stack.Pop(), Stack.Pop())); },
 
+            // Display modes.
+            ["hex"] = () => { displayMode = DisplayMode.Hex; },
+            ["dec"] = () => { displayMode = DisplayMode.Dec; },
+            ["bin"] = () => { displayMode = DisplayMode.Bin; },
+            ["oct"] = () => { displayMode = DisplayMode.Oct; },
 
             // Constants.
-            ["pi"] = () => { Stack.Push(Math.PI); },
-            ["e"] = () => { Stack.Push(Math.E); },
-            ["rand"] = () => { Stack.Push(new Random().NextDouble()); },
+            ["pi"] = () => { Stack.Push((decimal)Math.PI); },
+            ["e"] = () => { Stack.Push((decimal)Math.E); },
+            ["rand"] = () => { Stack.Push((decimal)new Random().NextDouble()); },
 
-            // Mathematic functions.
-            ["exp"] = () => { Stack.Push(Math.Exp(Stack.Pop())); },
-            ["fact"] = () => { Stack.Push(Factorial((long)Stack.Pop())); },
-            ["sqrt"] = () => { Stack.Push(Math.Sqrt(Stack.Pop())); },
-            ["exp"] = () => { Stack.Push(Math.Log2(Stack.Pop())); },
-            ["log"] = () => { Stack.Push(Math.Log(Stack.Pop())); },
-            ["pow"] = () => { var x = Stack.Pop(); Stack.Push(Math.Pow(Stack.Pop(), x)); },
+            //// Mathematic functions.
+            ["exp"] = () => { Stack.Push((decimal)Math.Exp((double)Stack.Pop())); },
+            ["fact"] = () => { Stack.Push((decimal)Factorial((long)Stack.Pop())); },
+            ["sqrt"] = () => { Stack.Push((decimal)Math.Sqrt((double)Stack.Pop())); },
+            ["exp"] = () => { Stack.Push((decimal)Math.Log2((double)Stack.Pop())); },
+            ["log"] = () => { Stack.Push((decimal)Math.Log((double)Stack.Pop())); },
+            ["pow"] = () => { var x = (double)Stack.Pop(); Stack.Push((decimal)Math.Pow((double)Stack.Pop(), x)); },
 
-            // Networking.
-            ["hnl"] = () => { Stack.Push(Math.Log(IPAddress.HostToNetworkOrder((long)Stack.Pop()))); },
-            ["hns"] = () => { Stack.Push(Math.Log(IPAddress.HostToNetworkOrder((short)Stack.Pop()))); },
-            ["nhl"] = () => { Stack.Push(Math.Log(IPAddress.NetworkToHostOrder((long)Stack.Pop()))); },
-            ["nhs"] = () => { Stack.Push(Math.Log(IPAddress.NetworkToHostOrder((short)Stack.Pop()))); },
+            //// Networking.
+            ["hnl"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((long)Stack.Pop())); },
+            ["hns"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((short)Stack.Pop())); },
+            ["nhl"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((long)Stack.Pop())); },
+            ["nhs"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((short)Stack.Pop())); },
 
             // Stack manipulation.
             ["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries[(int)Stack.Peek()]); },
@@ -124,25 +132,9 @@ namespace rpn
 
             // Other.
             ["exit"] = () => { isExit = true; },
-            //// TODO: add help content
-            ["help"] = () => {  },
-
-
+            ["help"] = () => { Help(); },
         };
 
-        static long Factorial(long f)
-        {
-            if (f == 0) 
-                return 1;
-            else 
-                return f * Factorial(f - 1);
-        }
-
-        static Dictionary<string, List<string>> Macros = new Dictionary<string, List<string>>();
-        static Dictionary<string, object> Variables = new Dictionary<string, object>();
-
-
-        const string prompt = "> ";
 
         static void Main(string[] args)
         {
@@ -154,8 +146,10 @@ namespace rpn
             else
             {
                 // Evaluate one line expression and exit.
-                Execute(args);
-                DisplayVariablesAndStack(false);
+                var tokens = args;
+                CheckAndCreateMacro(ref tokens);
+                Execute(tokens);
+                Display(false);
             }
         }
 
@@ -163,7 +157,7 @@ namespace rpn
         {
             while (!isExit)
             {
-                DisplayVariablesAndStack();
+                Display();
 
                 var readLine = Console.ReadLine();
                 if(readLine == null)
@@ -173,7 +167,6 @@ namespace rpn
                 }
 
                 var tokens = ParseInput(readLine);
-
                 CheckAndCreateMacro(ref tokens);
                 Execute(tokens);
             }
@@ -268,23 +261,35 @@ namespace rpn
             }
         }
 
-        static void DisplayVariablesAndStack(bool isPromptVisible = true)
+        static void Display(bool isPromptVisible = true)
         {
             //!!!!CONSIDER DISPLAY MODES)
 
             // First variables.
             foreach(var variable in Variables)
             {
-                Console.Write($"[ {variable.Key}={variable.Value} ] ");
+                Console.Write($"[ {variable.Key}={Format(variable.Value)} ] ");
             }
 
             var entries = Stack.ToArray().Reverse();
             foreach (var entry in entries)
             {
-                Console.Write(entry + " ");
+                Console.Write(Format(entry) + " ");
             }
             if(isPromptVisible)
                 Console.Write(prompt);
+        }
+
+        static string Format(decimal item)
+        {
+            return displayMode switch
+            {
+                DisplayMode.Dec => $"{item}",
+                DisplayMode.Hex => $"0x{Convert.ToUInt64(item):x}",
+                DisplayMode.Oct => $"0{Convert.ToString((long)item, 8)}",
+                DisplayMode.Bin => $"0b{Convert.ToString((long)item, 2)}",
+                _ => $"{item}",
+            };
         }
 
         static void DisplayError(string error)
@@ -292,23 +297,23 @@ namespace rpn
             Console.WriteLine($"Error: {error}");
         }
 
-        static object GetValue(string token)
+        static decimal GetValue(string token)
         {
-            object obj;
+            decimal? val;
 
             // Try hex, octal, binary.
-            obj = ParseHexOctalBinary(token);
-            if (obj != null) return obj;
+            val = ParseHexOctalBinary(token);
+            if (val != null) return (decimal)val;
 
-            obj = Convert.ChangeType(token, typeof(double));
-            if (obj != null) return obj;
+            val = (decimal?)Convert.ChangeType(token, typeof(decimal));
+            if (val != null) return (decimal)val;
 
             throw new Exception("Invalid input");
         }
 
-        static object ParseHexOctalBinary(string token)
+        static decimal? ParseHexOctalBinary(string token)
         {
-            object obj;
+            decimal? val;
 
             int _base;
             string t;
@@ -336,18 +341,150 @@ namespace rpn
 
             try
             {
-                obj = Convert.ToInt32(t, _base);
-                if (obj != null) return (double)obj;
-            }
-            catch { }
-            try
-            {
-                obj = Convert.ToInt64(t, _base);
-                if (obj != null) return (double)obj;
+                // Hex, octal and binary uses long.
+                val = Convert.ToInt64(t, _base);
+                if (val != null) return (decimal)val;
             }
             catch { }
 
             return null;
         }
+
+        static void Help()
+        {
+            Console.WriteLine("\t" + "Reverse polish notation (rpn) calculator.");
+            Console.WriteLine();
+            Console.WriteLine(operators);
+        }
+
+        static long Factorial(long f)
+        {
+            if (f == 0)
+                return 1;
+            else
+                return f * Factorial(f - 1);
+        }
+
+
+
+        const string operators =
+        @"
+        Arithmetic Operators
+
+            +          Add
+            -          Subtract
+            *          Multiply
+            /          Divide
+            cla        Clear the stack and variables
+            clr        Clear the stack
+            clv        Clear the variables
+            !          Boolean NOT
+            !=         Not equal to
+            %          Modulus
+            ++         Increment
+            --         Decrement
+
+        Bitwise Operators
+
+            &          Bitwise AND
+            |          Bitwise OR
+            ^          Bitwise XOR
+            ~          Bitwise NOT
+            <<         Bitwise shift left
+            >>         Bitwise shift right
+
+        Boolean Operators
+
+            &&         Boolean AND
+            ||         Boolean OR
+            ^^         Boolean XOR
+
+        Comparison Operators
+
+            <          Less than
+            <=         Less than or equal to
+            ==         Equal to
+            >          Greater than
+            >=         Greater than or equal to
+
+        Trigonometric Functions
+
+            acos       Arc Cosine
+            asin       Arc Sine
+            atan       Arc Tangent
+            cos        Cosine
+            cosh       Hyperbolic Cosine
+            sin        Sine
+            sinh       Hyperbolic Sine
+            tanh       Hyperbolic tangent
+
+        Numeric Utilities
+
+            ceil       Ceiling
+            floor      Floor
+            round      Round
+            ip         Integer part
+            fp         Floating part
+            sign       Push -1, 0, or 0 depending on the sign
+            abs        Absolute value
+            max        Max
+            min        Min
+
+        Display Modes
+
+            hex        Switch display mode to hexadecimal
+            dec        Switch display mode to decimal (default)
+            bin        Switch display mode to binary
+            oct        Switch display mode to octal
+
+        Constants
+
+            e          Push e
+            pi         Push Pi
+            rand       Generate a random number
+
+        Mathematic Functions
+
+            exp        Exponentiation
+            fact       Factorial
+            sqrt       Square Root
+            ln         Natural Logarithm
+            log        Logarithm
+            pow        Raise a number to a power
+
+        Networking
+
+            hnl        Host to network long
+            hns        Host to network short
+            nhl        Network to host long
+            nhs        Network to host short
+
+        Stack Manipulation
+
+            pick       Pick the -n'th item from the stack
+            repeat     Repeat an operation n times, e.g. '3 repeat +'
+            depth      Push the current stack depth
+            drop       Drops the top item from the stack
+            dropn      Drops n items from the stack
+            dup        Duplicates the top stack item
+            dupn       Duplicates the top n stack items in order
+            roll       Roll the stack upwards by n
+            rolld      Roll the stack downwards by n
+            stack      Toggles stack display from horizontal to vertical
+            swap       Swap the top 2 stack items
+
+        Macros and Variables
+
+            macro      Defines a macro, e.g. 'macro kib 1024 *'
+            x=         Assigns a variable, e.g. '1024 x='
+
+        Other
+
+            help       Print the help message
+            exit       Exit the calculator
+        ";
+
+
+
     }
 }
