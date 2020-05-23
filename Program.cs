@@ -211,78 +211,42 @@ namespace rpn
 
         static void Execute(string[] tokens)
         {
-
             foreach (var token in tokens)
             {
                 var localRepeat = repeat;
                 try
                 {
-
-
-                    //// If operator?
-                    //if (repeat == 0)
-                    //{
-                    //    // First check if it is macro.
-                    //    if (Macros.ContainsKey(token))
-                    //    {
-                    //        // Execute macro recursive.
-                    //        Execute(Macros[token].ToArray());
-                    //        continue;
-                    //    }
-
-                    //    // Then check if variable.
-                    //    if (Variables.ContainsKey(token))
-                    //    {
-                    //        // Use variable value.
-                    //        Stack.Push(Variables[token]);
-                    //        continue;
-                    //    }
-
-                    //    // Variable preconditioning.
-                    //    if (token.EndsWith("=") && token.Length > 1 && token[token.Length-2]>0x41)
-                    //    {
-                    //        varName = token;
-                    //        Operators["var"].Invoke();
-                    //    }
-                    //    else
-                    //    {
-                    //        Operators[token].Invoke();
-                    //    }
-                    //}
-                    //else
+                    for (int i = 0; i < localRepeat; i++)
                     {
-                        for (int i = 0; i < localRepeat; i++)
+                        // First check if it is macro.
+                        if (Macros.ContainsKey(token))
                         {
-                            // First check if it is macro.
-                            if (Macros.ContainsKey(token))
-                            {
-                                // Execute macro recursive.
-                                Execute(Macros[token].ToArray());
-                                continue;
-                            }
-
-                            // Then check if variable.
-                            if (Variables.ContainsKey(token))
-                            {
-                                // Use variable value.
-                                Stack.Push(Variables[token]);
-                                continue;
-                            }
-
-                            if (token.EndsWith("=") && token.Length > 1 && token[token.Length - 2] > 0x41)
-                            {
-                                varName = token;
-                                Operators["var"].Invoke();
-                            }
-                            else
-                            {
-                                Operators[token].Invoke();
-                            }
+                            // Execute macro recursive.
+                            Execute(Macros[token].ToArray());
+                            continue;
                         }
 
-                        if(localRepeat > 1)
-                            repeat = 1;
+                        // Then check if variable.
+                        if (Variables.ContainsKey(token))
+                        {
+                            // Use variable value directly.
+                            Stack.Push(Variables[token]);
+                            continue;
+                        }
+
+                        if (token.EndsWith("=") && token.Length > 1 && char.IsLetter(token[^2]))
+                        {
+                            varName = token;
+                            Operators["var"].Invoke();
+                        }
+                        else
+                        {
+                            Operators[token].Invoke();
+                        }
                     }
+
+                    if (localRepeat > 1)
+                        repeat = 1;
                 }
                 catch (KeyNotFoundException)
                 {
