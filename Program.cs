@@ -7,7 +7,7 @@ using System.Net;
 using System.Numerics;
 //using System.Numerics;
 using System.Security.Principal;
-
+using System.Text;
 
 namespace rpn
 {
@@ -320,11 +320,22 @@ namespace rpn
             return displayMode switch
             {
                 DisplayMode.Dec => $"{item}",
-                DisplayMode.Hex => $"0x{Convert.ToUInt64(item):x}",
-                DisplayMode.Oct => $"0{Convert.ToString((long)item, 8)}",
-                DisplayMode.Bin => $"0b{Convert.ToString((long)item, 2)}",
+                DisplayMode.Hex => $"0x{(BigInteger)item:x}",
+                DisplayMode.Oct => $"0{ToBaseString((BigInteger)item, 8)}",
+                DisplayMode.Bin => $"0b{ToBaseString((BigInteger)item, 2)}",
                 _ => $"{item}",
             };
+
+            string ToBaseString(BigInteger bi, int n)
+            {
+                StringBuilder sb = new StringBuilder();
+                while (bi > 0)
+                {
+                    sb.Insert(0, bi % n);
+                    bi /= n;
+                }
+                return sb.ToString();
+            }
         }
 
         static void DisplayError(string error)
@@ -340,34 +351,8 @@ namespace rpn
             val = ParseHexOctalBinary(token);
             if (val != null) return (BigDecimal)val;
 
-            try
-            {
-                val = (decimal?)Convert.ChangeType(token, typeof(decimal));
-                if (val != null) return (BigDecimal)val;
-            }
-            catch
-            {
-                try
-                {
-                    var x = BigDecimal.Parse(token);
-                    var y = BigDecimal.Divide(x, new BigDecimal(1000));
-                    var z = y + 1;
-                    Console.WriteLine(x);
-                    Console.WriteLine(y);
-                    Console.WriteLine(z);
-
-                    BigInteger a = new BigInteger();
-                    a = (BigInteger)x;
-                    Console.WriteLine(a);
-
-                    
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
+            val = BigDecimal.Parse(token);
+            if (val != null) return (BigDecimal)val;
 
             throw new Exception("Invalid input");
         }
