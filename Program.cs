@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Security.Principal;
 
 namespace rpn
@@ -25,6 +26,13 @@ namespace rpn
             Oct,
         };
         static DisplayMode displayMode = DisplayMode.Dec;
+
+        enum StackDirection
+        {
+            Horizontal,
+            Vertical,
+        }
+        static StackDirection stackDirection = StackDirection.Horizontal;
 
         static Stack<decimal> Stack { get; set; } = new Stack<decimal>();
         static Dictionary<string, List<string>> Macros = new Dictionary<string, List<string>>();
@@ -55,9 +63,24 @@ namespace rpn
             ////            [">>"] = () => { var x = (ulong)Stack.Pop(); Stack.Push((ulong)Stack.Pop() >> x); }, in C# x must be constant
 
             // Boolean.
-            ["&&"] = () => { var x = Stack.Pop() == 0 ? false : true; var y = Stack.Pop() == 0 ? false : true; Stack.Push(x && y ? 1 : 0); },
-            ["||"] = () => { var x = Stack.Pop() == 0 ? false : true; var y = Stack.Pop() == 0 ? false : true; Stack.Push(x || y ? 1 : 0); },
-            ["^^"] = () => { var x = Stack.Pop() == 0 ? false : true; var y = Stack.Pop() == 0 ? false : true; Stack.Push(x ^ y ? 1 : 0); },
+            ["&&"] = () => 
+            { 
+                var x = Stack.Pop() == 0 ? false : true; 
+                var y = Stack.Pop() == 0 ? false : true; 
+                Stack.Push(x && y ? 1 : 0); 
+            },
+            ["||"] = () => 
+            { 
+                var x = Stack.Pop() == 0 ? false : true; 
+                var y = Stack.Pop() == 0 ? false : true; 
+                Stack.Push(x || y ? 1 : 0); 
+            },
+            ["^^"] = () => 
+            { 
+                var x = Stack.Pop() == 0 ? false : true; 
+                var y = Stack.Pop() == 0 ? false : true; 
+                Stack.Push(x ^ y ? 1 : 0); 
+            },
 
             // Comparison.
             ["<"] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() < x ? 1 : 0); },
@@ -83,7 +106,7 @@ namespace rpn
             ["round"] = () => { Stack.Push(Math.Round(Stack.Pop())); },
             ["ip"] = () => { Stack.Push(Math.Truncate(Stack.Pop())); },
             ["fp"] = () => { var x = Stack.Pop(); Stack.Push(x - Math.Floor(x)); },
-            ["sign"] = () => { var x = Stack.Pop(); if (x > 0) x = 1; else if (x < 0) x = -1; else x = 0; Stack.Push(x); },
+            ["sign"] = () => { var x = Stack.Pop(); if (x >= 0) x = 0; else x = -1;  Stack.Push(x); },
             ["abs"] = () => { Stack.Push(Math.Abs(Stack.Pop())); },
             ["max"] = () => { Stack.Push(Math.Max(Stack.Pop(), Stack.Pop())); },
             ["max"] = () => { Stack.Push(Math.Min(Stack.Pop(), Stack.Pop())); },
@@ -101,7 +124,7 @@ namespace rpn
 
             //// Mathematic functions.
             ["exp"] = () => { Stack.Push((decimal)Math.Exp((double)Stack.Pop())); },
-            ["fact"] = () => { Stack.Push((decimal)Factorial((long)Stack.Pop())); },
+            ["fact"] = () => { Stack.Push((decimal) Factorial((ulong)Stack.Pop())); },
             ["sqrt"] = () => { Stack.Push((decimal)Math.Sqrt((double)Stack.Pop())); },
             ["exp"] = () => { Stack.Push((decimal)Math.Log2((double)Stack.Pop())); },
             ["log"] = () => { Stack.Push((decimal)Math.Log((double)Stack.Pop())); },
@@ -124,7 +147,13 @@ namespace rpn
             // TODO:
             //["roll"]
             //["rolln"]
-            //["stack"]
+            ["stack"] = () => 
+            {
+                if (stackDirection == StackDirection.Horizontal) 
+                    stackDirection = StackDirection.Vertical;
+                else 
+                    stackDirection = StackDirection.Horizontal;
+            },
 
             // Macros and variables.
             ["macro"] = () => { },
@@ -263,20 +292,24 @@ namespace rpn
 
         static void Display(bool isPromptVisible = true)
         {
-            //!!!!CONSIDER DISPLAY MODES)
-
             // First variables.
             foreach(var variable in Variables)
             {
-                Console.Write($"[ {variable.Key}={Format(variable.Value)} ] ");
+                if(stackDirection == StackDirection.Horizontal)
+                    Console.Write($"[ {variable.Key}={Format(variable.Value)} ] ");
+                else
+                    Console.WriteLine($"[ {variable.Key}={Format(variable.Value)} ] ");
             }
 
             var entries = Stack.ToArray().Reverse();
             foreach (var entry in entries)
             {
-                Console.Write(Format(entry) + " ");
+                if (stackDirection == StackDirection.Horizontal)
+                    Console.Write(Format(entry) + " ");
+                else
+                    Console.WriteLine(Format(entry) + " ");
             }
-            if(isPromptVisible)
+            if (isPromptVisible)
                 Console.Write(prompt);
         }
 
@@ -357,12 +390,15 @@ namespace rpn
             Console.WriteLine(operators);
         }
 
-        static long Factorial(long f)
+        static BigInteger Factorial(ulong f)
         {
-            if (f == 0)
-                return 1;
-            else
-                return f * Factorial(f - 1);
+            var bi = new BigInteger(1);
+            for(var i=1u; i<=f; i++ )
+            {
+                bi *= i;
+            }
+            //Console.WriteLine(bi);
+            return bi;
         }
 
 
