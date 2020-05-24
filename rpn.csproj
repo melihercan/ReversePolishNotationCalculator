@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BigFloat" Version="1.1.0" />
     <PackageReference Include="Lykke.BigDecimal" Version="1.0.0" />
   </ItemGroup>
 
