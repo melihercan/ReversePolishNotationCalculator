@@ -317,9 +317,9 @@ namespace rpn
             foreach(var variable in Variables)
             {
                 if(stackDirection == StackDirection.Horizontal)
-                    Console.Write($"[ {variable.Key}={Format(variable.Value)} ] ");
+                    Console.Write($"\u001b[32m[\u001b[0m {variable.Key}={Format(variable.Value)} \u001b[32m]\u001b[0m ");
                 else
-                    Console.WriteLine($"[ {variable.Key}={Format(variable.Value)} ] ");
+                    Console.WriteLine($"\u001b[32m[\u001b[0m {variable.Key}={Format(variable.Value)} \u001b[32m]\u001b[0m ");
             }
 
             var entries = Stack.ToArray().Reverse();
@@ -331,7 +331,7 @@ namespace rpn
                     Console.WriteLine(Format(entry) + " ");
             }
             if (isPromptVisible)
-                Console.Write(prompt);
+                Console.Write("\u001b[32m" + prompt + "\u001b[0m");
         }
 
         static string Format(BigFloat item)
