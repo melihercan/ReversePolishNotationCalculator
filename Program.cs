@@ -139,16 +139,39 @@ namespace rpn
             ["nhs"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((short)Stack.Pop())); },
 
             // Stack manipulation.
-            ["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries[(int)Stack.Peek()]); },
+            ["pick"] = () => { var entries = Stack.ToArray(); Stack.Push(entries[(int)Stack.Pop() - 1]); },
             ["repeat"] = () => { repeat = (int)Stack.Pop(); },
-            ["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries.Length); },
+            ["depth"] = () => { Stack.Push(Stack.Count); },
             ["drop"] = () => { _ = Stack.Pop(); },
             ["dropn"] = () => { var x = (int)Stack.Pop(); for (int i=0; i<x; i++)  _ = Stack.Pop();  },
             ["dup"] = () => { Stack.Push(Stack.Peek()); },
-            ["swap"] = () => { var x = Stack.Pop(); var y = Stack.Pop(); Stack.Push(x); Stack.Push(y); },
-            // TODO:
-            //["roll"]
-            //["rolln"]
+            ["dupn"] = () => 
+            {
+                var count = (int)Stack.Pop();
+                var index = Stack.Count - count;
+                var entries = Stack.Reverse().ToList().Skip(index);
+                foreach(var entry in entries)
+                    Stack.Push(entry);
+            },
+            ["roll"] = () => 
+            {
+                var count = (int)Stack.Pop();
+                var entries = Stack.Reverse().ToArray();
+                var rolled = entries.Skip(count).Concat(entries.Take(count)).ToArray();
+                Stack.Clear();
+                foreach (var entry in rolled)
+                    Stack.Push(entry);
+            },
+            ["rolld"] = () =>
+            {
+                var count = (int)Stack.Pop();
+                var len = Stack.Count;
+                var entries = Stack.Reverse().ToArray();
+                var rolled = entries.Skip(len-count).Concat(entries.Take(len-count)).ToArray();
+                Stack.Clear();
+                foreach (var entry in rolled)
+                    Stack.Push(entry);
+            },
             ["stack"] = () => 
             {
                 if (stackDirection == StackDirection.Horizontal) 
@@ -156,6 +179,7 @@ namespace rpn
                 else 
                     stackDirection = StackDirection.Horizontal;
             },
+            ["swap"] = () => { var x = Stack.Pop(); var y = Stack.Pop(); Stack.Push(x); Stack.Push(y); },
 
             // Macros and variables.
             ["macro"] = () => { },
