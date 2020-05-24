@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Numerics;
-//using System.Numerics;
-using System.Security.Principal;
 using System.Text;
 
 namespace rpn
 {
-
-
     class Program
     {
         const string prompt = "> ";
@@ -56,7 +51,7 @@ namespace rpn
             ["++"] = () => { var x = Stack.Pop(); x++; Stack.Push(x); },
             ["--"] = () => { var x = Stack.Pop(); x--; Stack.Push(x); },
 
-            //// Bitwise.
+            // Bitwise.
             ["&"] = () => { Stack.Push(Stack.Pop().Numerator & Stack.Pop().Numerator); },
             ["|"] = () => { Stack.Push(Stack.Pop().Numerator | Stack.Pop().Numerator); },
             ["^"] = () => { Stack.Push(Stack.Pop().Numerator ^ Stack.Pop().Numerator); },
@@ -101,7 +96,6 @@ namespace rpn
             ["sinh"] = () => { Stack.Push(Math.Sinh(Math.PI / 180 * (double)Stack.Pop())); },
             ["tanh"] = () => { Stack.Push(Math.Tanh(Math.PI / 180 * (double)Stack.Pop())); },
 
-
             // Numeric utilities.
             ["ceil"] = () => { Stack.Push(BigFloat.Ceil(Stack.Pop())); },
             ["floor"] = () => { Stack.Push(BigFloat.Floor(Stack.Pop())); },
@@ -124,7 +118,7 @@ namespace rpn
             ["e"] = () => { Stack.Push(Math.E); },
             ["rand"] = () => { Stack.Push(new Random().NextDouble()); },
 
-            //// Mathematic functions.
+            // Mathematic functions.
             ["exp"] = () => { Stack.Push(BigFloat.Exp(Stack.Pop())); },
             ["fact"] = () => { Stack.Push(Factorial((int)Stack.Pop())); },
             ["sqrt"] = () => { Stack.Push(BigFloat.Sqrt(Stack.Pop())); },
@@ -132,7 +126,7 @@ namespace rpn
             ["log"] = () => { Stack.Push(BigFloat.Log10(Stack.Pop())); },
             ["pow"] = () => { var x = (int)Stack.Pop(); Stack.Push(BigFloat.Pow(Stack.Pop(), x)); },
 
-            //// Networking.
+            // Networking.
             ["hnl"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((long)Stack.Pop())); },
             ["hns"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((short)Stack.Pop())); },
             ["nhl"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((long)Stack.Pop())); },
@@ -189,7 +183,6 @@ namespace rpn
             ["exit"] = () => { isExit = true; },
             ["help"] = () => { Help(); },
         };
-
 
         static void Main(string[] args)
         {
