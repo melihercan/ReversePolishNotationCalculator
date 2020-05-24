@@ -22,6 +22,7 @@
 
 // Additions by melihercan 2020.
 
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -285,7 +286,16 @@ namespace System.Numerics
         }
 
         public static BigFloat Sqrt(BigFloat value)
-            => Divide(Math.Pow(10, BigInteger.Log10(value.Numerator) / 2), Math.Pow(10, BigInteger.Log10(value.Denominator) / 2));
+        {
+            //            return Divide(Math.Pow(10, BigInteger.Log10(value.Numerator) / 2),
+            //              Math.Pow(10, BigInteger.Log10(value.Denominator) / 2));
+
+            // Sqrt of BigDecimal has better accuracy than the above commented code.
+            var res = BigFloat.Parse(BigDecimal.Sqrt(new BigDecimal(value.ToString())).ToString());
+            return res;
+
+
+        }
 
         public static double Log10(BigFloat value)
             => BigInteger.Log10(value.Numerator) - BigInteger.Log10(value.Denominator);
@@ -543,6 +553,15 @@ namespace System.Numerics
 
         #region Casts
 
+        public static explicit operator int(BigFloat value)
+        {
+            if (value.Numerator < int.MinValue)
+                throw new OverflowException($"{nameof(value)} is less than int.MinValue.");
+            if (value.Numerator > int.MaxValue)
+                throw new OverflowException($"{nameof(value)} is greater than int.MaxValue.");
+            return (int)value.Numerator;
+        }
+
         public static explicit operator decimal(BigFloat value)
         {
             if (decimal.MinValue > value)
@@ -613,5 +632,11 @@ namespace System.Numerics
             => new BigFloat(value);
 
         #endregion
+
+
+
     }
+  
+
+
 }

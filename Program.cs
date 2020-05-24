@@ -148,7 +148,7 @@ namespace rpn
 
             // Stack manipulation.
             //["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries[(int)Stack.Peek()]); },
-            //["repeat"] = () => { repeat = (int)Stack.Pop(); },
+            ["repeat"] = () => { repeat = (int)Stack.Pop(); },
             ["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries.Length); },
             ["drop"] = () => { _ = Stack.Pop(); },
             //["dropn"] = () => { var x = (int)Stack.Pop(); for (int i=0; i<x; i++)  _ = Stack.Pop();  },
@@ -297,15 +297,14 @@ namespace rpn
                 catch (KeyNotFoundException)
                 {
                     // Not an operator. Should be a value.
-                    try
-                    {
+//                    try
+  //                  {
                         var item = GetValue(token);
                         Stack.Push(item);
-                    }
-                    catch (Exception ex)
-                    {
-                        DisplayError(ex.Message);
-                    }
+    //                }
+      //              catch (Exception ex)
+        //            {
+          //          }
                 }
             }
         }
