@@ -293,8 +293,12 @@ namespace System.Numerics
             // Sqrt of BigDecimal has better accuracy than the above commented code.
             var res = BigFloat.Parse(BigDecimal.Sqrt(new BigDecimal(value.ToString())).ToString());
             return res;
+        }
 
-
+        public static BigFloat Exp(BigFloat value)
+        {
+            var res = BigFloat.Parse(BigDecimal.Exp(new BigDecimal(value.ToString())).ToString());
+            return res;
         }
 
         public static double Log10(BigFloat value)

@@ -40,14 +40,6 @@ namespace rpn
         static Dictionary<string, List<string>> Macros = new Dictionary<string, List<string>>();
         static Dictionary<string, BigFloat> Variables = new Dictionary<string, BigFloat>();
 
-        // !!! IMPORTANT !!!
-        // C# has builtin BigInteger but not BigFloat support.
-        // I looked for 3rd party libs and to my surprise there are not many!!!
-        // The best I found so far is Lykke.BigFloat, but this one is missing Trigonometric and 
-        // Mathematic functions. 
-        // Due to time constrains, I will not add support for these functions, but wrap them to use
-        // decimal in extension functions. Please see BigFloat.cs file for implementation.
-        // That means there will be no support for very big numbers in these functions.
         static Dictionary<string, Action> Operators = new Dictionary<string, Action>
         {
             // Arithmetic.
@@ -69,8 +61,8 @@ namespace rpn
             ["|"] = () => { Stack.Push(Stack.Pop().Numerator | Stack.Pop().Numerator); },
             ["^"] = () => { Stack.Push(Stack.Pop().Numerator ^ Stack.Pop().Numerator); },
             ["~"] = () => { Stack.Push(~Stack.Pop()); },
-            ////["<<"] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() << x); },
-            ////            [">>"] = () => { var x = (ulong)Stack.Pop(); Stack.Push((ulong)Stack.Pop() >> x); }, in C# x must be constant
+            ["<<"] = () => { var x = (int)Stack.Pop(); Stack.Push(Stack.Pop() << x); },
+            [">>"] = () => { var x = (int)Stack.Pop(); Stack.Push(Stack.Pop() >> x); }, 
 
             // Boolean.
             ["&&"] = () => 
@@ -99,24 +91,24 @@ namespace rpn
             [">"] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() > x ? BigFloat.One : BigFloat.Zero); },
             [">="] = () => { var x = Stack.Pop(); Stack.Push(Stack.Pop() >= x ? BigFloat.One : BigFloat.Zero); },
 
-            //Trigonometric functions.
-            //["acos"] = () => { Stack.Push((BigFloat)Math.Acos((Math.PI / 180) * (decimal)Stack.Pop())); },
-            //["asin"] = () => { Stack.Push((decimal)Math.Asin((Math.PI / 180) * (double)Stack.Pop())); },
-            //["atan"] = () => { Stack.Push((decimal)Math.Atan((Math.PI / 180) * (double)Stack.Pop())); },
-            //["cos"] = () => { Stack.Push((decimal)Math.Cos((Math.PI / 180) * (double)Stack.Pop())); },
-            //["cosh"] = () => { Stack.Push((decimal)Math.Cosh((Math.PI / 180) * (double)Stack.Pop())); },
-            //["sin"] = () => { Stack.Push(Math.Sin((Math.PI / 180) * Stack.Pop())); },
-            //["sinh"] = () => { Stack.Push((decimal)Math.Sinh((Math.PI / 180) * (double)Stack.Pop())); },
-            //["tanh"] = () => { Stack.Push((decimal)Math.Tanh((Math.PI / 180) * (double)Stack.Pop())); },
+            // Trigonometric functions.
+            ["acos"] = () => { Stack.Push(Math.Acos(Math.PI / 180 * (double)Stack.Pop())); },
+            ["asin"] = () => { Stack.Push(Math.Asin(Math.PI / 180 * (double)Stack.Pop())); },
+            ["atan"] = () => { Stack.Push(Math.Atan(Math.PI / 180 * (double)Stack.Pop())); },
+            ["cos"] = () => { Stack.Push(Math.Cos(Math.PI / 180 * (double)Stack.Pop())); },
+            ["cosh"] = () => { Stack.Push(Math.Cosh(Math.PI / 180 * (double)Stack.Pop())); },
+            ["sin"] = () => { Stack.Push(Math.Sin(Math.PI / 180 * (double)Stack.Pop())); },
+            ["sinh"] = () => { Stack.Push(Math.Sinh(Math.PI / 180 * (double)Stack.Pop())); },
+            ["tanh"] = () => { Stack.Push(Math.Tanh(Math.PI / 180 * (double)Stack.Pop())); },
 
 
-            //// Numeric utilities.
+            // Numeric utilities.
             ["ceil"] = () => { Stack.Push(BigFloat.Ceil(Stack.Pop())); },
             ["floor"] = () => { Stack.Push(BigFloat.Floor(Stack.Pop())); },
             ["round"] = () => { Stack.Push(BigFloat.Round(Stack.Pop())); },
             ["ip"] = () => { Stack.Push(BigFloat.Floor(Stack.Pop())); },
             ["fp"] = () => { var x = Stack.Pop(); Stack.Push(x - BigFloat.Floor(x)); },
-            ["sign"] = () => { var x = Stack.Pop(); if (x >= BigFloat.Zero) x = BigFloat.Zero; else x = -1;  Stack.Push(x); },
+            ["sign"] = () => { var x = Stack.Pop(); if (x >= BigFloat.Zero) x = BigFloat.Zero; else x = -1; Stack.Push(x); },
             ["abs"] = () => { Stack.Push(BigFloat.Abs(Stack.Pop())); },
 //            ["max"] = () => { Stack.Push(BigFloat.Max(Stack.Pop(), Stack.Pop())); },
   //          ["min"] = () => { Stack.Push(BigFloat.Min(Stack.Pop(), Stack.Pop())); },
@@ -128,30 +120,30 @@ namespace rpn
             ["oct"] = () => { displayMode = DisplayMode.Oct; },
 
             // Constants.
-            ["pi"] = () => { Stack.Push((decimal)Math.PI); },
-            ["e"] = () => { Stack.Push((decimal)Math.E); },
-            ["rand"] = () => { Stack.Push((decimal)new Random().NextDouble()); },
+            ["pi"] = () => { Stack.Push(Math.PI); },
+            ["e"] = () => { Stack.Push(Math.E); },
+            ["rand"] = () => { Stack.Push(new Random().NextDouble()); },
 
             //// Mathematic functions.
-//            ["exp"] = () => { Stack.Push(BigFloat..Exp(Stack.Pop())); },
-            //["fact"] = () => { Stack.Push((decimal) Factorial((ulong)Stack.Pop())); },
+            ["exp"] = () => { Stack.Push(BigFloat.Exp(Stack.Pop())); },
+            ["fact"] = () => { Stack.Push(Factorial((int)Stack.Pop())); },
             ["sqrt"] = () => { Stack.Push(BigFloat.Sqrt(Stack.Pop())); },
             ["ln"] = () => { Stack.Push(BigFloat.Log(Stack.Pop(),2)); },
-            ["log"] = () => { Stack.Push(BigFloat.Log10((double)Stack.Pop())); },
-            //["pow"] = () => { var x = Stack.Pop(); Stack.Push(BigFloat.Pow(Stack.Pop(), x)); },
+            ["log"] = () => { Stack.Push(BigFloat.Log10(Stack.Pop())); },
+            ["pow"] = () => { var x = (int)Stack.Pop(); Stack.Push(BigFloat.Pow(Stack.Pop(), x)); },
 
             //// Networking.
-            //["hnl"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((long)Stack.Pop())); },
-            //["hns"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((short)Stack.Pop())); },
-            //["nhl"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((long)Stack.Pop())); },
-            //["nhs"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((short)Stack.Pop())); },
+            ["hnl"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((long)Stack.Pop())); },
+            ["hns"] = () => { Stack.Push(IPAddress.HostToNetworkOrder((short)Stack.Pop())); },
+            ["nhl"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((long)Stack.Pop())); },
+            ["nhs"] = () => { Stack.Push(IPAddress.NetworkToHostOrder((short)Stack.Pop())); },
 
             // Stack manipulation.
-            //["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries[(int)Stack.Peek()]); },
+            ["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries[(int)Stack.Peek()]); },
             ["repeat"] = () => { repeat = (int)Stack.Pop(); },
             ["pick"] = () => { var entries = Stack.Reverse().ToArray(); Stack.Push(entries.Length); },
             ["drop"] = () => { _ = Stack.Pop(); },
-            //["dropn"] = () => { var x = (int)Stack.Pop(); for (int i=0; i<x; i++)  _ = Stack.Pop();  },
+            ["dropn"] = () => { var x = (int)Stack.Pop(); for (int i=0; i<x; i++)  _ = Stack.Pop();  },
             ["dup"] = () => { Stack.Push(Stack.Peek()); },
             ["swap"] = () => { var x = Stack.Pop(); var y = Stack.Pop(); Stack.Push(x); Stack.Push(y); },
             // TODO:
@@ -296,15 +288,8 @@ namespace rpn
                 }
                 catch (KeyNotFoundException)
                 {
-                    // Not an operator. Should be a value.
-//                    try
-  //                  {
-                        var item = GetValue(token);
-                        Stack.Push(item);
-    //                }
-      //              catch (Exception ex)
-        //            {
-          //          }
+                    var item = GetValue(token);
+                    Stack.Push(item);
                 }
             }
         }
@@ -426,18 +411,15 @@ namespace rpn
             Console.WriteLine(operators);
         }
 
-        static BigInteger Factorial(ulong f)
+        static BigInteger Factorial(int f)
         {
             var bi = new BigInteger(1);
-            for(var i=1u; i<=f; i++ )
+            for(var i=1; i<=f; i++ )
             {
                 bi *= i;
             }
-            //Console.WriteLine(bi);
             return bi;
         }
-
-
 
         const string operators =
         @"
