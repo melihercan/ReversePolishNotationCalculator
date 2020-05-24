@@ -178,6 +178,23 @@ namespace System.Numerics
             return value - Floor(value / other) * other;
         }
 
+
+        public static BigFloat Max(BigFloat value, BigFloat other)
+        {
+            if (value >= other)
+                return value;
+            else
+                return other;
+        }
+
+        public static BigFloat Min(BigFloat value, BigFloat other)
+        {
+            if (value <= other)
+                return value;
+            else
+                return other;
+        }
+
         public static BigFloat DivideRemainder(BigFloat value, BigFloat other, out BigFloat remainder)
         {
             value = Divide(value, other);

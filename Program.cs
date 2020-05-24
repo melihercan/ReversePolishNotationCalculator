@@ -110,8 +110,8 @@ namespace rpn
             ["fp"] = () => { var x = Stack.Pop(); Stack.Push(x - BigFloat.Floor(x)); },
             ["sign"] = () => { var x = Stack.Pop(); if (x >= BigFloat.Zero) x = BigFloat.Zero; else x = -1; Stack.Push(x); },
             ["abs"] = () => { Stack.Push(BigFloat.Abs(Stack.Pop())); },
-//            ["max"] = () => { Stack.Push(BigFloat.Max(Stack.Pop(), Stack.Pop())); },
-  //          ["min"] = () => { Stack.Push(BigFloat.Min(Stack.Pop(), Stack.Pop())); },
+            ["max"] = () => { Stack.Push(BigFloat.Max(Stack.Pop(), Stack.Pop())); },
+            ["min"] = () => { Stack.Push(BigFloat.Min(Stack.Pop(), Stack.Pop())); },
 
             // Display modes.
             ["hex"] = () => { displayMode = DisplayMode.Hex; },
