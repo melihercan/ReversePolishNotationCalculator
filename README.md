@@ -1,2 +1,2 @@
 # rpn
-Reverse Polish Notation calculator
+Reverse Polish Notation (rpn) calculator.
